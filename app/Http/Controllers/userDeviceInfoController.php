@@ -74,4 +74,40 @@ class userDeviceInfoController extends Controller
             return response()->json(['error' => 'Failed to retrieve device info', 'details' => $e->getMessage()], 500);
         }
     }
+
+    public function deleteDevice(Request $request)
+    {
+        try {
+            // Validate the request data
+            $request->validate([
+                'id' => 'required|string|max:100',
+            ]);
+
+            // Delete the device info from the database
+            userDeviceInfo::where('id', $request->id)->delete();
+
+            return response()->json(['message' => 'Device info deleted successfully'], 200);
+
+        } catch(\Exception $e) {
+            return response()->json(['error' => 'Failed to delete device info', 'details' => $e->getMessage()], 500);                      
+        }
+    }
+
+    public function deleteAllDevice(Request $request)
+    {
+        try {
+            // Validate the request data
+            $request->validate([
+                'id_code' => 'required|integer',
+            ]);
+
+            // Delete all device info for the given id_code
+            userDeviceInfo::where('id_code', $request->id_code)->delete();
+
+            return response()->json(['message' => 'All device info deleted successfully'], 200);
+
+        } catch(\Exception $e) {
+            return response()->json(['error' => 'Failed to delete all device info', 'details' => $e->getMessage()], 500);                      
+        }
+    }
 }

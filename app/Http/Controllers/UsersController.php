@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use App\Models\User;
 use App\Models\PasswordLogs;
+use App\Models\DeviceLogs;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Tymon\JWTAuth\Facades\JWTAuth;
@@ -57,6 +58,8 @@ class UsersController extends Controller
         $request->validate([
             'username' => 'required|string',
             'password' => 'required|min:8|max:12',
+            'device_model' => 'required|string|max:50',
+            'location' => 'required|string|max:50',
         ]);
 
         $user = User::where('username', $request->username)->first();
@@ -68,6 +71,14 @@ class UsersController extends Controller
         }
 
         $token = JWTAuth::fromUser($user);
+
+        $deviceLog = DeviceLogs::create([
+            'id_code' => $user->id_code,
+            'device_model' => $request->device_model,
+            'date_time' => now(),
+            'log_status' => 'login',
+            'location' => $request->location,
+        ]);
 
         return response()->json([
             'message' => 'Login successful',
@@ -170,6 +181,16 @@ class UsersController extends Controller
             if (!$token) {
                 return response()->json(['error' => 'Token not provided'], 401);
             }
+
+            $user = JWTAuth::parseToken()->authenticate();
+
+            $deviceLog = DeviceLogs::create([
+                'id_code' => $user->id_code,
+                'device_model' => $request->device_model,
+                'date_time' => now(),
+                'log_status' => 'logout',
+                'location' => $request->location,
+            ]);
 
             JWTAuth::invalidate($token);
 
