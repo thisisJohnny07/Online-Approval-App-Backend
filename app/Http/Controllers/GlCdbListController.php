@@ -38,26 +38,6 @@ class GlCdbListController extends Controller
         return response()->json($records);
     }
 
-    public function disbursementCount()
-    {
-        $oneMonthAgo = Carbon::now()->subMonth();
-        $now = Carbon::now();
-
-        $records = GlCdbList::whereBetween('date_trans', [$oneMonthAgo, $now])->get();
-
-        $toUploadCount  = $records->where('transaction_status', 'R')->count();
-        $toReviewCount  = $records->whereIn('transaction_status', ['UT', 'U'])->count();
-        $toApproveCount  = $records->whereIn('transaction_status', ['T', 'TT'])->count();
-        $returnedCount  = $records->whereIn('transaction_status', ['UR', 'UTR'])->count();
-
-        return response()->json([
-            'to_upload' => $toUploadCount,
-            'to_review' => $toReviewCount,
-            'to_approve' => $toApproveCount,
-            'returned' => $returnedCount
-        ]);
-    }
-
     // forward to reviewer
     public function forward(Request $request)
     {
