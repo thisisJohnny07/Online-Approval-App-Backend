@@ -22,6 +22,8 @@ Route::post('/logout', [UsersController::class, 'logout']);
 Route::post('/send-otp', [UsersController::class, 'sendOtp']);
 Route::post('/verify-otp', [UsersController::class, 'verifyOtp']);
 Route::post('/change-password', [UsersController::class, 'changePassword']);
+Route::post('/register-fingerprint', [UsersController::class, 'registerFingerprint']);
+Route::post('/login-fingerprint', [UsersController::class, 'loginWithFingerprint']);
 
 // device verification
 Route::get('/device-info', [userDeviceInfoController::class, 'getAllDeviceInfo']);

@@ -228,4 +228,70 @@ class UsersController extends Controller
             return response()->json(['error' => 'Token not provided or invalid'], 401);
         }
     }
+
+    public function registerFingerprint(Request $request)
+    {
+        $request->validate([
+            'device_id' => 'required|string|max:100',
+        ]);
+
+        try {
+            $user = JWTAuth::parseToken()->authenticate();
+
+            // Check if the device_id is already registered to another user
+            $existingUser = User::where('device_id', $request->device_id)->first();
+            if ($existingUser && $existingUser->id !== $user->id) {
+                return response()->json([
+                    'error' => 'This device fingerprint is already registered to another account.',
+                ], 409); // HTTP 409 Conflict
+            }
+
+            // Update the user's device_id
+            $user->device_id = $request->device_id;
+            $user->save();
+
+            return response()->json([
+                'message' => 'Fingerprint registered successfully',
+                'device_id' => $user->device_id,
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Failed to register fingerprint', 'details' => $e->getMessage()], 500);
+        }
+    }
+
+    public function loginWithFingerprint(Request $request)
+    {
+        $request->validate([
+            'device_id' => 'required|string|max:100',
+        ]);
+
+        try {
+            // Retrieve the user associated with the device_id
+            $user = User::where('device_id', $request->device_id)->first();
+
+            if (!$user) {
+                return response()->json(['error' => 'Device not recognized or user not found'], 401);
+            }
+
+            // Generate a JWT token for the user
+            $token = JWTAuth::fromUser($user);
+
+            // Log the fingerprint-based login
+            DeviceLogs::create([
+                'id_code' => $user->id_code,
+                'device_model' => $request->device_model ?? 'Unknown',
+                'date_time' => now(),
+                'log_status' => 'fingerprint_login',
+                'location' => $request->location ?? 'Unknown',
+            ]);
+
+            return response()->json([
+                'message' => 'Login successful using fingerprint',
+                'token' => $token,
+                'user' => $user->makeHidden(['password']),
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Failed to log in using fingerprint', 'details' => $e->getMessage()], 500);
+        }
+    }
 }
