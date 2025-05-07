@@ -456,12 +456,7 @@ class GlArbListCOntroller extends Controller
 
                         // If at least one group condition is approved, update the transaction status
                         if ($anyConditionApproved) {
-                            // Determine the new transaction status
-                            if ($record->transaction_status == 'T') {
-                                $newStatus = 'A'; // Transition from Reviewed to Approved
-                            } else if ($record->transaction_status == 'TT') {
-                                $newStatus = 'AA'; // Transition from Fully Reviewed to Fully Approved
-                            }
+                            $newStatus = 'A'; 
 
                             // Update the main table's transaction_status
                             $record->update([
